@@ -39,7 +39,7 @@ def findFirefoxDatabase():
 	# TODO: Either parse the current profile, or add a drop down menu to select which one you want.
 	print(f'Found {len(matches)} profile(s). Which one do you want? {matches}')
 
-	myTemporaryProfile = 'zocz1232.default-release'
+	myTemporaryProfile = 'key5ypi1.default-release'
 
 	sqlitePath = '/'.join([basePath, myTemporaryProfile, file])
 
@@ -63,19 +63,31 @@ def getSqliteClient():
 	pathToFile = findFirefoxDatabase()
 	return sqlite3.connect(pathToFile)
 
-def addUrlToMozPlaces(bookmark):
+def addRecordToMozPlaces(bookmark):
 	client = getSqliteClient()
-	print(bookmark)
+	cursor = client.cursor()
 
 	url = bookmark['url']
 	title = bookmark['title']
 
-	print(url)
-	print(title)
-
-	# Why won't this insert work?!
-	client.cursor().execute("INSERT INTO moz_places (url) VALUES (?)" ('reddit'))
+	cursor.execute('INSERT INTO moz_places (url, title) VALUES (?, ?)', (url, title))
 	client.commit()
+
+	return cursor.lastrowid
+
+	pass
+
+def addRecordToMozBookmarks(bookmark, fk):
+	client = getSqliteClient()
+	cursor = client.cursor()
+
+	title = bookmark['title']
+
+	cursor.execute('INSERT INTO moz_bookmarks (type, fk, parent, title, position) VALUES (?, ?, ?, ?, ?)', ('1', fk, '3', title, 11))
+	client.commit()
+
+	return cursor.lastrowid
+
 	pass
 
 if __name__ == '__main__':
@@ -101,9 +113,10 @@ if __name__ == '__main__':
 
 		for bookmark in bookmarks['bookmarks']:
 
-			addUrlToMozPlaces(bookmark)
+			fk = addRecordToMozPlaces(bookmark)
+			addRecordToMozBookmarks(bookmark, fk)
 
-		print('')
+		print('Done with sync')
 
 	# # cursor.execute("""UPDATE moz_bookmarks SET title = 'test' WHERE id = 123;""")
 	# cursor.execute( """INSERT INTO moz_bookmarks
