@@ -4,6 +4,8 @@ import shutil
 import sqlite3
 import time
 
+import yaml
+
 # https://wiki.mozilla.org/images/d/d5/Places.sqlite.schema3.pdf
 # https://stackoverflow.com/questions/464516/firefox-bookmarks-sqlite-structure
 
@@ -48,13 +50,41 @@ def findFirefoxDatabase():
 
 	print(f'Could not find Firefox sqlite file at {sqlitePath}')
 
-if __name__ == '__main__':
-	tmpdir = tempfile.gettempdir()
-	# shutil.copy(os.path.join('/home/j/.mozilla/firefox/37rfrt13.default', "places.sqlite"), tmpdir)
-	pathToFile = findFirefoxDatabase()
-	conn = sqlite3.connect(pathToFile)
+def getBookmarksFromFile():
+	if not os.path.isfile('bookmarks.yml'):
+		print(f'There is no bookmarks yml file.')
 
-	cursor = conn.cursor()
+		return False
+
+	with open('bookmarks.yml') as fh:
+	    return yaml.load(fh, Loader=yaml.FullLoader)
+
+def getSqliteClient():
+	pathToFile = findFirefoxDatabase()
+	return sqlite3.connect(pathToFile)
+
+def addUrlToMozPlaces(bookmark):
+	client = getSqliteClient()
+	print(bookmark)
+
+	url = bookmark['url']
+	title = bookmark['title']
+
+	print(url)
+	print(title)
+
+	# Why won't this insert work?!
+	client.cursor().execute("INSERT INTO moz_places (url) VALUES (?)" ('reddit'))
+	client.commit()
+	pass
+
+if __name__ == '__main__':
+	# tmpdir = tempfile.gettempdir()
+	# shutil.copy(os.path.join('/home/j/.mozilla/firefox/37rfrt13.default', "places.sqlite"), tmpdir)
+	# pathToFile = findFirefoxDatabase()
+	# conn = sqlite3.connect(pathToFile)
+
+	# cursor = conn.cursor()
 
 	# cursor.execute("""SELECT title FROM moz_bookmarks;""")
 	# rows1 = cursor.fetchall()
@@ -65,18 +95,28 @@ if __name__ == '__main__':
 	# print(timestamp)
 	# print(time.time_ns())
 
-	# cursor.execute("""UPDATE moz_bookmarks SET title = 'test' WHERE id = 123;""")
-	cursor.execute( """INSERT INTO moz_bookmarks
-                          (type, fk, parent, position, title, dateAdded) 
-                           VALUES 
-                          (1, 16, 11, 5, 'och nu15', 1636148302936001)""")
-	conn.commit()
+	bookmarks = getBookmarksFromFile()
 
-	cursor.execute("""SELECT title FROM moz_bookmarks;""")
-	rows2 = cursor.fetchall()
+	for i in range(0, len(bookmarks['bookmarks'])):
 
-	print(rows2)
+		for bookmark in bookmarks['bookmarks']:
 
-	conn.close()
+			addUrlToMozPlaces(bookmark)
 
-	print('done')
+		print('')
+
+	# # cursor.execute("""UPDATE moz_bookmarks SET title = 'test' WHERE id = 123;""")
+	# cursor.execute( """INSERT INTO moz_bookmarks
+ #                          (type, fk, parent, position, title, dateAdded) 
+ #                           VALUES 
+ #                          (1, 16, 11, 5, 'och nu15', 1636148302936001)""")
+	# conn.commit()
+
+	# cursor.execute("""SELECT title FROM moz_bookmarks;""")
+	# rows2 = cursor.fetchall()
+
+	# print(rows2)
+
+	# conn.close()
+
+	# print('done')
