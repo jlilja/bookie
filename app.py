@@ -83,6 +83,8 @@ def addRecordToMozBookmarks(bookmark, fk):
 
 	title = bookmark['title']
 
+	timestamp = round(time.time() * 1000000)
+
 	cursor.execute('INSERT INTO moz_bookmarks (type, fk, parent, title, position) VALUES (?, ?, ?, ?, ?)', ('1', fk, '3', title, 11))
 	client.commit()
 
@@ -109,14 +111,11 @@ if __name__ == '__main__':
 
 	bookmarks = getBookmarksFromFile()
 
-	for i in range(0, len(bookmarks['bookmarks'])):
+	for bookmark in bookmarks['bookmarks']:
+		fk = addRecordToMozPlaces(bookmark)
+		addRecordToMozBookmarks(bookmark, fk)
 
-		for bookmark in bookmarks['bookmarks']:
-
-			fk = addRecordToMozPlaces(bookmark)
-			addRecordToMozBookmarks(bookmark, fk)
-
-		print('Done with sync')
+	print('Done with sync')
 
 	# # cursor.execute("""UPDATE moz_bookmarks SET title = 'test' WHERE id = 123;""")
 	# cursor.execute( """INSERT INTO moz_bookmarks
