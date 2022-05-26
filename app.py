@@ -1,9 +1,9 @@
 import os
+import sys
 import tempfile
 import shutil
 import sqlite3
 import time
-
 import yaml
 
 # https://wiki.mozilla.org/images/d/d5/Places.sqlite.schema3.pdf
@@ -85,50 +85,52 @@ def addRecordToMozBookmarks(bookmark, fk):
 
 	timestamp = round(time.time() * 1000000)
 
-	cursor.execute('INSERT INTO moz_bookmarks (type, fk, parent, title, position) VALUES (?, ?, ?, ?, ?)', ('1', fk, '3', title, 11))
+	print(timestamp)
+
+	# cursor.execute('INSERT INTO moz_bookmarks (type, fk, parent, title, position) VALUES (?, ?, ?, ?, ?)', ('1', fk, '3', title, 11))
 	client.commit()
 
 	return cursor.lastrowid
 
 	pass
 
+def getProfilePath(profile):
+	user = os.getlogin()
+	file = 'places.sqlite'
+
+	if profile:
+		path = '/'.join(['/home', user, '.mozilla/firefox', profile, file])
+
+		if not os.path.isfile(path):
+			print('\nUnsure what profile your firefox is using? Browse to about:profiles and it will tell you.\n')
+
+			raise Exception(f'There is no profile named %s' % profile)
+
+		print(f'Profile %s found.' % profile)
+
+		return path
+
+
+	pass
+
 if __name__ == '__main__':
-	# tmpdir = tempfile.gettempdir()
-	# shutil.copy(os.path.join('/home/j/.mozilla/firefox/37rfrt13.default', "places.sqlite"), tmpdir)
-	# pathToFile = findFirefoxDatabase()
-	# conn = sqlite3.connect(pathToFile)
+	file = sys.argv[0]
+	browser = sys.argv[1]
+	profile = sys.argv[2]
 
-	# cursor = conn.cursor()
+	if browser not in ('firefox'):
+		raise Exception(f'%s not in list of supported browsers' % browser)
 
-	# cursor.execute("""SELECT title FROM moz_bookmarks;""")
-	# rows1 = cursor.fetchall()
-	# print(rows1)
+	print(f'Looking for profile in %s directory' % browser)
+	profilePath = getProfilePath(profile)
+	print(f'Using path %s' % profilePath)
 
-	timestamp = round(time.time() * 1000000)
+	# timestamp = round(time.time() * 1000000)
 
-	# print(timestamp)
-	# print(time.time_ns())
+	# bookmarks = getBookmarksFromFile()
 
-	bookmarks = getBookmarksFromFile()
+	# for bookmark in bookmarks['bookmarks']:
+	# 	fk = addRecordToMozPlaces(bookmark)
+	# 	addRecordToMozBookmarks(bookmark, fk)
 
-	for bookmark in bookmarks['bookmarks']:
-		fk = addRecordToMozPlaces(bookmark)
-		addRecordToMozBookmarks(bookmark, fk)
-
-	print('Done with sync')
-
-	# # cursor.execute("""UPDATE moz_bookmarks SET title = 'test' WHERE id = 123;""")
-	# cursor.execute( """INSERT INTO moz_bookmarks
- #                          (type, fk, parent, position, title, dateAdded) 
- #                           VALUES 
- #                          (1, 16, 11, 5, 'och nu15', 1636148302936001)""")
-	# conn.commit()
-
-	# cursor.execute("""SELECT title FROM moz_bookmarks;""")
-	# rows2 = cursor.fetchall()
-
-	# print(rows2)
-
-	# conn.close()
-
-	# print('done')
+	# print('Done with sync')
