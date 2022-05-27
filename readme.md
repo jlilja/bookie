@@ -5,6 +5,7 @@ This is a project aimed to automate the process of adding and administrating boo
 ### Requirements
 
 * Python 3
+* Firefox version >= 3
 
 ### Usage
 
