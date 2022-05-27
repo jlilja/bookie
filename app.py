@@ -18,6 +18,43 @@ import yaml
 # If you are lucky then the new bookmark(s) should be populated.
 # Probably need to add a step to remove the lock file and check if there's an open FF session?
 
+def getBookmarksFromFile():
+	if not os.path.isfile('bookmarks.yml'):
+		raise Exception('There is no bookmarks yml file')
+
+	with open('bookmarks.yml') as fh:
+	    return yaml.load(fh, Loader=yaml.FullLoader)
+
+def getSqliteClient(profilePath):
+	# pathToFile = findFirefoxDatabase()
+	return sqlite3.connect(profilePath)
+
+def addRecordToMozPlaces(profilePath, bookmark):
+	url = bookmark['url']
+	title = bookmark['title']
+
+	try:
+		client = getSqliteClient(profilePath)
+		cursor = client.cursor()
+
+		cursor.execute('''
+			INSERT INTO
+				moz_places
+				(url, title)
+			VALUES
+				(?, ?)
+			''',
+			(url, title)
+		)
+
+		client.commit()
+	except sqlite3.OperationalError as error:
+		raise Exception('Database is locked. Is Firefox running?')
+
+	return cursor.lastrowid
+
+	pass
+
 # table moz_bookmarks
 # 	- id = auto incremental id
 # 	- type = type 1 is bookmark, type 2 is folder
@@ -26,73 +63,30 @@ import yaml
 #	- position = the position its placed in the folder
 #	- title = name of bookmark
 
-def findFirefoxDatabase():
-	basePath = '/home/j/.mozilla/firefox'
-	wantedSuffix = '.default'
-	file = 'places.sqlite'
-
-	dirs = os.listdir(basePath)
-	getProfileMatches = lambda dir: dir.endswith('.default') or dir.endswith('.default-release')
-	matches = list(filter(getProfileMatches, dirs))
-
-	# Unsure what profile your firefox is using? Browse to about:profiles and it'll tell you.
-	# TODO: Either parse the current profile, or add a drop down menu to select which one you want.
-	print(f'Found {len(matches)} profile(s). Which one do you want? {matches}')
-
-	myTemporaryProfile = 'key5ypi1.default-release'
-
-	sqlitePath = '/'.join([basePath, myTemporaryProfile, file])
-
-	if os.path.isfile(sqlitePath):
-		print(f'Found sqlite file at {sqlitePath}')
-
-		return sqlitePath
-
-	print(f'Could not find Firefox sqlite file at {sqlitePath}')
-
-def getBookmarksFromFile():
-	if not os.path.isfile('bookmarks.yml'):
-		print(f'There is no bookmarks yml file.')
-
-		return False
-
-	with open('bookmarks.yml') as fh:
-	    return yaml.load(fh, Loader=yaml.FullLoader)
-
-def getSqliteClient():
-	pathToFile = findFirefoxDatabase()
-	return sqlite3.connect(pathToFile)
-
-def addRecordToMozPlaces(bookmark):
-	client = getSqliteClient()
-	cursor = client.cursor()
-
-	url = bookmark['url']
+def addRecordToMozBookmarks(profilePath, bookmark, fk):
+	bookmarkType = '1' if bookmark['type'] == 'bookmark' else '2'
 	title = bookmark['title']
-
-	cursor.execute('INSERT INTO moz_places (url, title) VALUES (?, ?)', (url, title))
-	client.commit()
-
-	return cursor.lastrowid
-
-	pass
-
-def addRecordToMozBookmarks(bookmark, fk):
-	client = getSqliteClient()
-	cursor = client.cursor()
-
-	title = bookmark['title']
-
 	timestamp = round(time.time() * 1000000)
 
-	print(timestamp)
+	try:
+		client = getSqliteClient(profilePath)
+		cursor = client.cursor()
 
-	# cursor.execute('INSERT INTO moz_bookmarks (type, fk, parent, title, position) VALUES (?, ?, ?, ?, ?)', ('1', fk, '3', title, 11))
+		cursor.execute('''
+			INSERT INTO
+				moz_bookmarks
+				(type, fk, parent, title, position, dateAdded, lastModified)
+			VALUES
+				(?, ?, ?, ?, ?, ?, ?)
+			''',
+			(bookmarkType, fk, '3', title, 11, timestamp, timestamp)
+		)
+	except sqlite3.OperationalError as error:
+		raise Exception('Database is locked. Is Firefox running?')
+
 	client.commit()
 
 	return cursor.lastrowid
-
-	pass
 
 def getProfilePath(profile):
 	user = os.getlogin()
@@ -110,7 +104,6 @@ def getProfilePath(profile):
 
 		return path
 
-
 	pass
 
 if __name__ == '__main__':
@@ -125,12 +118,10 @@ if __name__ == '__main__':
 	profilePath = getProfilePath(profile)
 	print(f'Using path %s' % profilePath)
 
-	# timestamp = round(time.time() * 1000000)
+	bookmarks = getBookmarksFromFile()
 
-	# bookmarks = getBookmarksFromFile()
+	for bookmark in bookmarks['bookmarks']:
+		fk = addRecordToMozPlaces(profilePath, bookmark)
+		addRecordToMozBookmarks(profilePath, bookmark, fk)
 
-	# for bookmark in bookmarks['bookmarks']:
-	# 	fk = addRecordToMozPlaces(bookmark)
-	# 	addRecordToMozBookmarks(bookmark, fk)
-
-	# print('Done with sync')
+	print('Done with sync')

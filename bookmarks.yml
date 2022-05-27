@@ -1,5 +1,12 @@
 bookmarks:
-  - title: reddit
+  - type: bookmark
+    title: Reddit
     url: https://reddit.com
-  - title: duck duck go
+
+  - type: bookmark
+    title: ddg
     url: https://ddg.co
+
+  - type: bookmark
+    title: Github
+    url: https://github.com
