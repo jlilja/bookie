@@ -92,7 +92,7 @@ def addFolderToMozBookmarks(profilePath, record, parent):
 	timestamp = round(time.time() * 1000000)
 	guid = randomword(10)
 
-	runSqlQuery(profilePath, '''
+	return runSqlQuery(profilePath, '''
 		INSERT INTO
 			moz_bookmarks
 				(type, parent, title, position, dateAdded, lastModified, guid)
@@ -109,8 +109,7 @@ def getProfilePath(profile):
 		path = '/'.join(['/home', user, '.mozilla/firefox', profile, file])
 
 		if not os.path.isfile(path):
-			print('\nUnsure what profile your firefox is using? Browse to about:profiles and it will tell you.\n')
-
+			print('\nBrowse to about:profiles and it will tell you.\n')
 			raise Exception(f'There is no profile named %s' % profile)
 
 		print(f'Profile %s found.' % profile)
