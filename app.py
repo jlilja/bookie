@@ -19,7 +19,7 @@ import yaml
 # Probably need to add a step to remove the lock file and check if there's an open FF session?
 
 def getBookmarksFromFile():
-	if not os.path.isfile('bookmarks.yml'):
+	if not os.path.isfile('bookmarks-example.yml'):
 		raise Exception('There is no bookmarks yml file')
 
 	with open('bookmarks.yml') as fh:
