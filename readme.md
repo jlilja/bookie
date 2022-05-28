@@ -50,8 +50,8 @@ Example:
 ```
   - type: folder
     title: work
-
     children:
+
       - type: bookmark
         title: Github
         url: https://github.com
