@@ -24,10 +24,10 @@ This script will append bookmarks to the existing bookmarks in your filefox prof
 #### Bookmark
 
 ```
-__type__ - [REQUIRED, STRING] "bookmark"
-__title__ - [REQURED, STRING] The title of the bookmark.
-__url__ - [REQUIRED, STRING] The URL to the website of the bookmark.
-__children__ - [LIST] A list of records with bookmarks and/or folders.
+type		[STRING, REQUIRED] "bookmark"
+title		[STRING, REQURED] The title of the bookmark.
+url			[STRING, REQUIRED] The URL to the website of the bookmark.
+children	[LIST] A list of records with bookmarks and/or folders.
 ```
 Example:
 
@@ -40,9 +40,9 @@ Example:
 #### Folder
 
 ```
-__type__ - [REQUIRED, STRING] "folder"
-__title__ - [REQURED, STRING] The title of the folder.
-__children__ - [LIST] A list of records with bookmarks and/or folders.
+type		[STRING, REQUIRED] "folder"
+title		[STRING, REQURED] The title of the folder.
+children	[LIST] A list of records with bookmarks and/or folders.
 ```
 
 Example:
