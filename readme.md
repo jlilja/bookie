@@ -11,6 +11,10 @@ This is a project aimed to automate the process of adding and administrating boo
 
 `$ python3 app.py [browser] [profile]`
 
+[browser] currently only supports 'firefox'.
+
+[profile] Can be found by browsing `about:profiles`. Looks like `kyy5y7i1.default-release`.
+
 For usage of this script without any modification, Bookie will use the `bookmarks-example.yml` file as reference to which bookmarks to create.
 
 This script will append bookmarks to the existing bookmarks in your filefox profile.
