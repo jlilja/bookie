@@ -19,14 +19,9 @@ For usage of this script without any modification, Bookie will use the `bookmark
 
 This script will append bookmarks to the existing bookmarks in your filefox profile.
 
-### What is missing?
-
-* Option to clear all existing bookmarks and populate the bookmarks defined in `bookmarks-example/private.yml`.
-* creating other bookmark yml file beside bookmarks-example.yml
-
 ### bookmarks yml file
 
-##### Bookmark
+#### Bookmark
 
 __type__ - [REQUIRED, STRING] "bookmark"
 
@@ -44,7 +39,7 @@ Example:
     url: https://www.reddit.com
 ```
 
-##### Folder
+#### Folder
 
 __type__ - [REQUIRED, STRING] "folder"
 
@@ -71,3 +66,8 @@ Example:
             title: jitsi
             url: https://jitsi.org/
 ```
+
+### What is missing?
+
+* Option to clear all existing bookmarks and populate the bookmarks defined in `bookmarks-example/private.yml`.
+* creating other bookmark yml file beside bookmarks-example.yml
