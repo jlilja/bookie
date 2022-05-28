@@ -22,7 +22,7 @@ def getBookmarksFromFile():
 	if not os.path.isfile('bookmarks-example.yml'):
 		raise Exception('There is no bookmarks yml file')
 
-	with open('bookmarks.yml') as fh:
+	with open('bookmarks-example.yml') as fh:
 	    return yaml.load(fh, Loader=yaml.FullLoader)
 
 def getSqliteClient(profilePath):
