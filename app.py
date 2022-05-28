@@ -29,7 +29,7 @@ def getBookmarksFromFile():
 	    return yaml.load(fh, Loader=yaml.FullLoader)
 
 def runSqlQuery(profilePath, query, values):
-	client = getSqliteClient(profilePath)
+	client = sqlite3.connect(profilePath)
 
 	try:
 		cursor = client.cursor()
@@ -39,10 +39,6 @@ def runSqlQuery(profilePath, query, values):
 		raise Exception('Database is locked. Is Firefox running?')
 
 	return cursor.lastrowid
-
-def getSqliteClient(profilePath):
-	# pathToFile = findFirefoxDatabase()
-	return sqlite3.connect(profilePath)
 
 def addRecordToMozPlaces(profilePath, bookmark):
 	url = bookmark['url']
@@ -136,7 +132,6 @@ def addBookmarkLoop(records, parent):
 				addBookmarkLoop(record['children'], newParent)
 
 if __name__ == '__main__':
-	file = sys.argv[0]
 	browser = sys.argv[1]
 	profile = sys.argv[2]
 
