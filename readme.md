@@ -26,7 +26,7 @@ This script will append bookmarks to the existing bookmarks in your filefox prof
 ```
 type		[STRING, REQUIRED] "bookmark"
 title		[STRING, REQURED] The title of the bookmark.
-url			[STRING, REQUIRED] The URL to the website of the bookmark.
+url 		[STRING, REQUIRED] The URL to the website of the bookmark.
 children	[LIST] A list of records with bookmarks and/or folders.
 ```
 Example:
