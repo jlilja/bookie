@@ -1,10 +1,9 @@
 import os
 import sys
-import tempfile
-import shutil
 import sqlite3
 import time
 import yaml
+import random, string
 
 # https://wiki.mozilla.org/images/d/d5/Places.sqlite.schema3.pdf
 # https://stackoverflow.com/questions/464516/firefox-bookmarks-sqlite-structure
@@ -18,12 +17,28 @@ import yaml
 # If you are lucky then the new bookmark(s) should be populated.
 # Probably need to add a step to remove the lock file and check if there's an open FF session?
 
+def randomword(length):
+   letters = string.ascii_lowercase
+   return ''.join(random.choice(letters) for i in range(length))
+
 def getBookmarksFromFile():
 	if not os.path.isfile('bookmarks-example.yml'):
 		raise Exception('There is no bookmarks yml file')
 
 	with open('bookmarks-example.yml') as fh:
 	    return yaml.load(fh, Loader=yaml.FullLoader)
+
+def runSqlQuery(profilePath, query, values):
+	client = getSqliteClient(profilePath)
+
+	try:
+		cursor = client.cursor()
+		cursor.execute(query, values)
+		client.commit()
+	except sqlite3.OperationalError as error:
+		raise Exception('Database is locked. Is Firefox running?')
+
+	return cursor.lastrowid
 
 def getSqliteClient(profilePath):
 	# pathToFile = findFirefoxDatabase()
@@ -32,28 +47,16 @@ def getSqliteClient(profilePath):
 def addRecordToMozPlaces(profilePath, bookmark):
 	url = bookmark['url']
 	title = bookmark['title']
-	client = getSqliteClient(profilePath)
+	guid = randomword(10)
 
-	try:
-		cursor = client.cursor()
-
-		cursor.execute('''
-			INSERT INTO
-				moz_places
-				(url, title)
-			VALUES
-				(?, ?)
-			''',
-			(url, title)
-		)
-
-		client.commit()
-	except sqlite3.OperationalError as error:
-		raise Exception('Database is locked. Is Firefox running?')
-
-	return cursor.lastrowid
-
-	pass
+	return runSqlQuery(profilePath, '''
+		INSERT INTO
+			moz_places
+				(url, title, guid)
+		VALUES
+			(?, ?, ?)
+		''', (url, title, guid)
+	)
 
 def bookmarkOrFolder(record):
 	mapping = {
@@ -67,7 +70,7 @@ def bookmarkOrFolder(record):
 # 	- id = auto incremental id
 # 	- type = type 1 is bookmark, type 2 is folder
 #	- fk = 1 to 1 relation to record in moz_places (null if folder)
-#	- parent = IDK
+#	- parent = 3 if it is a top level bookmark. Otherwise the id of the folder it belongs to.
 #	- position = the position its placed in the folder
 #	- title = name of bookmark
 
@@ -75,51 +78,32 @@ def addBookmarkToMozBookmarks(profilePath, bookmark, fk, parent):
 	bookmarkType = bookmarkOrFolder(bookmark)
 	title = bookmark['title']
 	timestamp = round(time.time() * 1000000)
-	client = getSqliteClient(profilePath)
+	guid = randomword(10)
 
-	try:
-		cursor = client.cursor()
-
-		cursor.execute('''
-			INSERT INTO
-				moz_bookmarks
-				(type, fk, parent, title, position, dateAdded, lastModified)
-			VALUES
-				(?, ?, ?, ?, ?, ?, ?)
-			''',
-			(bookmarkType, fk, parent, title, 11, timestamp, timestamp)
+	return runSqlQuery(profilePath, '''
+		INSERT INTO
+			moz_bookmarks
+				(type, fk, parent, title, position, dateAdded, lastModified, guid)
+		VALUES
+			(?, ?, ?, ?, ?, ?, ?, ?)
+		''', (bookmarkType, fk, parent, title, 11, timestamp, timestamp, guid)
 		)
-	except sqlite3.OperationalError as error:
-		raise Exception('Database is locked. Is Firefox running?')
 
-	client.commit()
-
-	return cursor.lastrowid
 
 def addFolderToMozBookmarks(profilePath, record, parent):
 	bookmarkType = bookmarkOrFolder(record)
 	title = record['title']
 	timestamp = round(time.time() * 1000000)
-	client = getSqliteClient(profilePath)
+	guid = randomword(10)
 
-	try:
-		cursor = client.cursor()
-
-		cursor.execute('''
-			INSERT INTO
-				moz_bookmarks
-				(type, parent, title, position, dateAdded, lastModified)
-			VALUES
-				(?, ?, ?, ?, ?, ?)
-			''',
-			(bookmarkType, parent, title, 11, timestamp, timestamp)
-		)
-	except sqlite3.OperationalError as error:
-		raise Exception('Database is locked. Is Firefox running?')
-
-	client.commit()
-
-	return cursor.lastrowid
+	runSqlQuery(profilePath, '''
+		INSERT INTO
+			moz_bookmarks
+				(type, parent, title, position, dateAdded, lastModified, guid)
+		VALUES
+			(?, ?, ?, ?, ?, ?, ?)
+		''', (bookmarkType, parent, title, 11, timestamp, timestamp, guid)
+	)
 
 def getProfilePath(profile):
 	user = os.getlogin()
