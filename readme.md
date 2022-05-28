@@ -25,10 +25,8 @@ This script will append bookmarks to the existing bookmarks in your filefox prof
 
 #### Bookmarks
 
-```
-type - [REQUIRED, STRING] This defines if the current row is of type "bookmark" when defining a bookmark. This field exists for future development of "folders" when defining folders.
+__type__ - [REQUIRED, STRING] This defines if the current row is of type "bookmark" when defining a bookmark. This field exists for future development of "folders" when defining folders.
 
-title - [REQURED, STRING] The title of the bookmark.
+__title__ - [REQURED, STRING] The title of the bookmark.
 
-url - [REQUIRED, STRING] The URL to the website of the bookmark.
-```
+__url__ - [REQUIRED, STRING] The URL to the website of the bookmark.
