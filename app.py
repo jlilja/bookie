@@ -32,9 +32,9 @@ def getSqliteClient(profilePath):
 def addRecordToMozPlaces(profilePath, bookmark):
 	url = bookmark['url']
 	title = bookmark['title']
+	client = getSqliteClient(profilePath)
 
 	try:
-		client = getSqliteClient(profilePath)
 		cursor = client.cursor()
 
 		cursor.execute('''
@@ -55,6 +55,14 @@ def addRecordToMozPlaces(profilePath, bookmark):
 
 	pass
 
+def bookmarkOrFolder(record):
+	mapping = {
+		'bookmark': '1',
+		'folder': '2'
+	}
+
+	return mapping[record['type']]
+
 # table moz_bookmarks
 # 	- id = auto incremental id
 # 	- type = type 1 is bookmark, type 2 is folder
@@ -63,13 +71,13 @@ def addRecordToMozPlaces(profilePath, bookmark):
 #	- position = the position its placed in the folder
 #	- title = name of bookmark
 
-def addRecordToMozBookmarks(profilePath, bookmark, fk):
-	bookmarkType = '1' if bookmark['type'] == 'bookmark' else '2'
+def addBookmarkToMozBookmarks(profilePath, bookmark, fk, parent):
+	bookmarkType = bookmarkOrFolder(bookmark)
 	title = bookmark['title']
 	timestamp = round(time.time() * 1000000)
+	client = getSqliteClient(profilePath)
 
 	try:
-		client = getSqliteClient(profilePath)
 		cursor = client.cursor()
 
 		cursor.execute('''
@@ -79,7 +87,32 @@ def addRecordToMozBookmarks(profilePath, bookmark, fk):
 			VALUES
 				(?, ?, ?, ?, ?, ?, ?)
 			''',
-			(bookmarkType, fk, '3', title, 11, timestamp, timestamp)
+			(bookmarkType, fk, parent, title, 11, timestamp, timestamp)
+		)
+	except sqlite3.OperationalError as error:
+		raise Exception('Database is locked. Is Firefox running?')
+
+	client.commit()
+
+	return cursor.lastrowid
+
+def addFolderToMozBookmarks(profilePath, record, parent):
+	bookmarkType = bookmarkOrFolder(record)
+	title = record['title']
+	timestamp = round(time.time() * 1000000)
+	client = getSqliteClient(profilePath)
+
+	try:
+		cursor = client.cursor()
+
+		cursor.execute('''
+			INSERT INTO
+				moz_bookmarks
+				(type, parent, title, position, dateAdded, lastModified)
+			VALUES
+				(?, ?, ?, ?, ?, ?)
+			''',
+			(bookmarkType, parent, title, 11, timestamp, timestamp)
 		)
 	except sqlite3.OperationalError as error:
 		raise Exception('Database is locked. Is Firefox running?')
@@ -106,6 +139,18 @@ def getProfilePath(profile):
 
 	pass
 
+def addBookmarkLoop(records, parent):
+	for record in records:
+		if record['type'] == 'bookmark':
+			fk = addRecordToMozPlaces(profilePath, record)
+			addBookmarkToMozBookmarks(profilePath, record, fk, parent)
+
+		if record['type'] == 'folder':
+			newParent = addFolderToMozBookmarks(profilePath, record, parent)
+
+			if record['children']:
+				addBookmarkLoop(record['children'], newParent)
+
 if __name__ == '__main__':
 	file = sys.argv[0]
 	browser = sys.argv[1]
@@ -118,10 +163,7 @@ if __name__ == '__main__':
 	profilePath = getProfilePath(profile)
 	print(f'Using path %s' % profilePath)
 
-	bookmarks = getBookmarksFromFile()
-
-	for bookmark in bookmarks['bookmarks']:
-		fk = addRecordToMozPlaces(profilePath, bookmark)
-		addRecordToMozBookmarks(profilePath, bookmark, fk)
+	records = getBookmarksFromFile()
+	addBookmarkLoop(records['bookmarks'], '3')
 
 	print('Done with sync')
