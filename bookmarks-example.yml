@@ -1,12 +1,35 @@
 bookmarks:
   - type: bookmark
     title: Reddit
-    url: https://reddit.com
+    url: https://www.reddit.com
 
   - type: bookmark
     title: ddg
-    url: https://ddg.co
+    url: https://duckduckgo.com/
+
+  - type: folder
+    title: inspiration
+    children:
+      - type: bookmark
+        title: Pinterest
+        url: https://www.pinterest.com
+
+  - type: folder
+    title: work
+
+    children:
+      - type: bookmark
+        title: Github
+        url: https://github.com
+
+      - type: folder
+        title: WFH
+        children:
+
+          - type: bookmark
+            title: jitsi
+            url: https://jitsi.org/
 
   - type: bookmark
-    title: Github
-    url: https://github.com
+    title: Hacker News
+    url: https://news.ycombinator.com/
