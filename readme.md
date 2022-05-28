@@ -22,15 +22,52 @@ This script will append bookmarks to the existing bookmarks in your filefox prof
 ### What is missing?
 
 * Option to clear all existing bookmarks and populate the bookmarks defined in `bookmarks-example/private.yml`.
-* Creating folders.
-* Placing bookmarks in folders.
+* creating other bookmark yml file beside bookmarks-example.yml
 
 ### bookmarks yml file
 
-#### Bookmarks
+##### Bookmark
 
-__type__ - [REQUIRED, STRING] This defines if the current row is of type "bookmark" when defining a bookmark. This field exists for future development of "folders" when defining folders.
+__type__ - [REQUIRED, STRING] "bookmark"
 
 __title__ - [REQURED, STRING] The title of the bookmark.
 
 __url__ - [REQUIRED, STRING] The URL to the website of the bookmark.
+
+__children__ - [LIST] A list of records with bookmarks and/or folders.
+
+Example:
+
+```
+  - type: bookmark
+    title: Reddit
+    url: https://www.reddit.com
+```
+
+##### Folder
+
+__type__ - [REQUIRED, STRING] "folder"
+
+__title__ - [REQURED, STRING] The title of the folder.
+
+__children__ - [LIST] A list of records with bookmarks and/or folders.
+
+Example:
+
+```
+  - type: folder
+    title: work
+
+    children:
+      - type: bookmark
+        title: Github
+        url: https://github.com
+
+      - type: folder
+        title: WFH
+        children:
+
+          - type: bookmark
+            title: jitsi
+            url: https://jitsi.org/
+```
